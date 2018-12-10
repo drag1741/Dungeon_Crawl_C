@@ -5,7 +5,7 @@
 
 #include "floor.h"
 
-#define DUNGEON_NAME_SIZE 50
+#define DUNGEON_NAME_SIZE 100
 struct Dungeon{
     //members
     char name[DUNGEON_NAME_SIZE];

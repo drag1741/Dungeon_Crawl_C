@@ -49,6 +49,7 @@ void print_current_floor_imp(const struct Dungeon *dungeon){
 
 //get dungeon->name from assets/dungeon_names.txt
 void set_dungeon_name_imp(struct Dungeon *dungeon){
+/*
     FILE *fd = NULL;
     char name[DUNGEON_NAME_SIZE];
     fd = fopen("./assets/dungeon_names.txt", "r");
@@ -61,6 +62,42 @@ void set_dungeon_name_imp(struct Dungeon *dungeon){
         dungeon->name[strcspn(dungeon->name, "\n")] = 0;
         fclose(fd);
     }
+*/
+	//open file from argv[1]
+	FILE *in_file = NULL;
+	in_file = fopen("assets/dungeon_names.txt", "r");
+	if( in_file == NULL ){//failed to open file
+		fprintf(stderr,"[set_dungeon_name_imp] failed to open file\n");
+		exit(-1);
+	}
+
+	//find number of lines in in_file	
+	char in_string[DUNGEON_NAME_SIZE];
+	int newline_count = 0;	
+	while(  !feof(in_file) ){	
+		fgets(in_string, DUNGEON_NAME_SIZE, in_file);	
+		newline_count++;
+		
+	}
+	newline_count--;
+	int max_lines = newline_count;
+
+	//reset file and count
+	rewind(in_file);
+	newline_count = 0;
+
+	//find string at line
+	int	line_number = rand() % max_lines;
+	while( newline_count != line_number ){	
+		fgets(in_string, DUNGEON_NAME_SIZE, in_file);	
+		newline_count++;
+	}
+	//remove \n and print out in_string
+	in_string[strcspn( in_string, "\n")] = 0;
+	strncpy(dungeon->name,in_string,100);
+
+	//close file
+	fclose(in_file);
 }
 
 //delete the dungeon and free memory
