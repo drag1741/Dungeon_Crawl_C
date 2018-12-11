@@ -11,8 +11,10 @@
 struct Floor* init_floor(const int height, const int width, const float density_percent){
     //allocate memory
     struct Floor *ret_value = malloc(sizeof (struct Floor));
-    if (ret_value == NULL) //malloc failed
+    if (ret_value == NULL){ //malloc failed
+        fprintf(stderr,"[init_floor] malloc failed.\n");
         return NULL;
+    }
     //set members
     ret_value->height = height;
     ret_value->width = width;
@@ -41,8 +43,16 @@ struct Floor* init_floor(const int height, const int width, const float density_
 void generate_random_floor_imp(struct Floor *floor){
     //allocate memory
     floor->graph = malloc(sizeof * floor->graph * floor->height);
+    if(floor->graph == NULL){
+        fprintf(stderr,"[generate_random_floor_imp]floor->graph malloc failed\n");
+        exit(-1);
+    }
     for( int i = 0 ; i < floor->height; i++){
         floor->graph[i] = malloc(sizeof(floor->graph[i]) * (floor->width+1));
+        if(floor->graph[i] == NULL){
+            fprintf(stderr,"[generate_random_floor_imp]floor->graph[%d] malloc failed\n",i);
+            exit(-1);
+        }
     }
     //fill floor with rock '#'
     int i, j;
@@ -99,6 +109,10 @@ void graph_from_file_imp(struct Floor *floor, char *filename){
 
     //create memory for floor.graph
     floor->graph = malloc(sizeof * floor->graph * floor->height);
+    if(floor->graph == NULL){
+        fprintf(stderr,"[generate_random_floor_imp]floor->graph malloc failed\n");
+        exit(-1);
+    }
     int line_size, temp,i,j;
     fpos_t position;
     for( i = 0 ; i < floor->height; i++){
@@ -112,6 +126,10 @@ void graph_from_file_imp(struct Floor *floor, char *filename){
         }
         fsetpos(fd, &position);//set position to start of line
         floor->graph[i] = malloc(sizeof * floor->graph[i] * line_size); 
+        if(floor->graph[i] == NULL){
+            fprintf(stderr,"[generate_random_floor_imp]floor->graph[%d] malloc failed\n",i);
+            exit(-1);
+        }
         //load characters from file 
         for( j = 0 ; j < line_size-1; j++){
             floor->graph[i][j] = init_tile(fgetc(fd));

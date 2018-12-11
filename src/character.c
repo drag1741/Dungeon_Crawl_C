@@ -13,8 +13,10 @@
 struct Character* init_character(const char symbol, const int y, const int x){
     //allocate memory
     struct Character *ret_value = malloc(sizeof (struct Character));
-    if (ret_value == NULL) //malloc failed
+    if (ret_value == NULL){ //malloc failed
+        fprintf(stderr,"[init_character] malloc failed.\n");
         return NULL;
+    }
     //set members
     ret_value->symbol = symbol;
     ret_value->y_position = y;
