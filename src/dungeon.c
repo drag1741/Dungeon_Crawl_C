@@ -12,8 +12,10 @@
 struct Dungeon* init_dungeon(const int depth){
     //allocate memory
     struct Dungeon *ret_value = malloc(sizeof (struct Dungeon));
-    if (ret_value == NULL) //malloc failed
+    if (ret_value == NULL){ //malloc failed
+		fprintf(stderr,"[init_dungeon] failed to allocate memory.");
         return NULL;
+	}
     //set members
     ret_value->depth = depth; 
     ret_value->floors = malloc(sizeof * ret_value->floors * ret_value->depth);
@@ -49,20 +51,6 @@ void print_current_floor_imp(const struct Dungeon *dungeon){
 
 //get dungeon->name from assets/dungeon_names.txt
 void set_dungeon_name_imp(struct Dungeon *dungeon){
-/*
-    FILE *fd = NULL;
-    char name[DUNGEON_NAME_SIZE];
-    fd = fopen("./assets/dungeon_names.txt", "r");
-    if ( fd == NULL ){
-        printf("assets/dungeon_names.txt did not open");
-        strncpy(dungeon->name, "Dungeon of Doom", 100);
-    }
-    else{//get name from file and remove \n
-        fgets(dungeon->name, DUNGEON_NAME_SIZE, fd);
-        dungeon->name[strcspn(dungeon->name, "\n")] = 0;
-        fclose(fd);
-    }
-*/
 	//open file from argv[1]
 	FILE *in_file = NULL;
 	in_file = fopen("assets/dungeon_names.txt", "r");
@@ -102,4 +90,5 @@ void set_dungeon_name_imp(struct Dungeon *dungeon){
 
 //delete the dungeon and free memory
 void delete_dungeon_imp(struct Dungeon *dungeon){
+	free(dungeon);
 }

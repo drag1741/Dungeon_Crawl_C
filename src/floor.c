@@ -236,8 +236,33 @@ void set_tile_show_true_imp( struct Floor *floor, int tile_y, int tile_x, int ar
     if( start_x < 0 ) start_x =0;
     if( max_y > floor->height ) max_y = floor->height;
     if( max_x > floor->width ) max_x = floor->width;
-    //set tile->show = true
-    for( int i = start_y ; i < max_y ; i++ )
-        for( int j = start_x ; j < max_x ; j++ )
+    //set square around player 
+	int i,j;
+    for( i = tile_y-1 ; i < tile_y+2 ; i++ )
+        for( j = tile_x-1 ; j < tile_x+2 ; j++ )
             floor->graph[i][j]->show = true;
+	//show cross from player
+	//right
+	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#'; j++){
+            floor->graph[tile_y][j]->show = true;
+	}
+	floor->graph[tile_y][j]->show = true;//show wall section
+	//down
+	for( i = tile_y; floor->graph[i][tile_x]->symbol != '#'; i++){
+            floor->graph[i][tile_x]->show = true;
+	}
+	floor->graph[i][tile_x]->show = true;//show wall section
+	//left
+	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#'; j--){
+            floor->graph[tile_y][j]->show = true;
+	}
+	floor->graph[tile_y][j]->show = true;//show wall section
+	
+	//show upper right
+	
+	//show lower right
+	//show upper left
+	//show lower left
+
 }
+	
