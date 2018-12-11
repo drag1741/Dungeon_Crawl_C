@@ -16,6 +16,7 @@ struct Floor{
     float density_percent;
     int entrances[NUM_OF_ENTRS][2];//y,x values for entry
     int exits[NUM_OF_ENTRS][2];//y,x values for exit
+    int max_visibility;//the maximum show range for characters
 
     //functions
     void (*generate_random_floor)(struct Floor*);

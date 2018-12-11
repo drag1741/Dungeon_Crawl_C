@@ -17,6 +17,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->height = height;
     ret_value->width = width;
     ret_value->density_percent = density_percent;
+    ret_value->max_visibility = 10;//the maximum show range for characters
     //set function pointers
     ret_value->generate_random_floor = &generate_random_floor_imp;
     ret_value->graph_from_file = &graph_from_file_imp;
@@ -198,6 +199,9 @@ void print_floor_imp(struct Floor *floor){
                     mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
                 }
             }
+            else if(floor->graph[i][j]->revealed == true){
+                //change color to slightly darker if revealed but not shown
+            }
             j++;
         }
     }
@@ -239,27 +243,46 @@ void set_tile_show_true_imp( struct Floor *floor, int tile_y, int tile_x, int ar
     //set square around player 
 	int i,j;
     for( i = tile_y-1 ; i < tile_y+2 ; i++ )
-        for( j = tile_x-1 ; j < tile_x+2 ; j++ )
+        for( j = tile_x-1 ; j < tile_x+2 ; j++ ){
             floor->graph[i][j]->show = true;
+            floor->graph[i][j]->revealed = true;
+    }
 	//show cross from player
 	//right
-	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#'; j++){
+	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#' && 
+                            (j-tile_x) < floor->max_visibility; j++){
+
             floor->graph[tile_y][j]->show = true;
+            floor->graph[tile_y][j]->revealed = true;
 	}
 	floor->graph[tile_y][j]->show = true;//show wall section
+	floor->graph[tile_y][j]->revealed = true;
 	//down
-	for( i = tile_y; floor->graph[i][tile_x]->symbol != '#'; i++){
+	for( i = tile_y; floor->graph[i][tile_x]->symbol != '#' &&
+                            (i-tile_y) < floor->max_visibility; i++){
             floor->graph[i][tile_x]->show = true;
+            floor->graph[i][tile_x]->revealed = true;
 	}
 	floor->graph[i][tile_x]->show = true;//show wall section
+	floor->graph[i][tile_x]->revealed = true;
 	//left
-	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#'; j--){
+	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#' &&
+                       (-1*(j-tile_x)) < floor->max_visibility; j--){
             floor->graph[tile_y][j]->show = true;
+            floor->graph[tile_y][j]->revealed = true;
 	}
 	floor->graph[tile_y][j]->show = true;//show wall section
+	floor->graph[tile_y][j]->revealed = true;
+	//up
+	for( i = tile_y; floor->graph[i][tile_x]->symbol != '#' &&
+                       (-1*(i-tile_y)) < floor->max_visibility; i--){
+            floor->graph[i][tile_x]->show = true;
+            floor->graph[i][tile_x]->revealed = true;
+	}
+	floor->graph[i][tile_x]->show = true;//show wall section
+	floor->graph[i][tile_x]->revealed = true;
 	
 	//show upper right
-	
 	//show lower right
 	//show upper left
 	//show lower left
