@@ -13,15 +13,10 @@ struct Tile * init_tile(const int symbol){
     if( ret_value == NULL) //malloc failed
         return NULL;
     //set members
-    ret_value->symbol = symbol;
+    ret_value->symbol = symbol;//during init symbol is always '#'
     ret_value->lit = false;
     ret_value->revealed = false;
-    if(ret_value->symbol == '#'){//set tile to block light passing through
-        ret_value->can_pass_light = false;
-    }
-    else{
-        ret_value->can_pass_light = true;
-    }
+    ret_value->can_pass_light = false;//changed in floor generate
     //set function pointers
 
     //function calls

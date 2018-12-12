@@ -44,7 +44,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
 
 //generate random floor floor
 void generate_random_floor_imp(struct Floor *floor){
-    //allocate memory
+    /******allocate memory******/
     floor->graph = malloc(sizeof * floor->graph * floor->height);
     if(floor->graph == NULL){
         fprintf(stderr,"[generate_random_floor_imp]floor->graph malloc failed\n");
@@ -57,7 +57,7 @@ void generate_random_floor_imp(struct Floor *floor){
             exit(-1);
         }
     }
-    //fill floor with rock '#'
+    /******fill floor with rock '#'******/
     int i, j;
     for( i = 0 ; i < floor->height ; i++){
         for( j = 0 ; j < floor->width ; j++){
@@ -65,7 +65,7 @@ void generate_random_floor_imp(struct Floor *floor){
         }
         floor->graph[i][j] = init_tile(0);
     }
-    //create open spaces '.'
+    /******create open spaces '.'******/
     int y, x, start_x, max_y = 0, max_x = 0;
     int max_room_size = 10;//used for max size of room generation 
     int room_size_y;//stores the current size of room y dimension
@@ -74,7 +74,7 @@ void generate_random_floor_imp(struct Floor *floor){
                                         (2*floor->height + 2*(floor->width-2));
     float number_open_spaces = 0;//once density_percent has been reached
     float percent_open_spaces = 0;//stop generating open space
-    //keep generating open spaces until density_percent has been reached
+    /******keep generating open spaces until density_percent has been reached******/
     while(percent_open_spaces < floor->density_percent){
         //find starting position
         y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
@@ -93,6 +93,7 @@ void generate_random_floor_imp(struct Floor *floor){
             for( x = start_x ; x < max_x ; x++){
                 if(floor->graph[y][x]->symbol != '.'){
                     floor->graph[y][x]->symbol = '.';//open space char
+                    floor->graph[y][x]->can_pass_light = true;//allow light to pass through
                     number_open_spaces++;
                 }
             }
@@ -101,7 +102,7 @@ void generate_random_floor_imp(struct Floor *floor){
     }
 }
 
-//fills graph from file
+/******fills graph from file******/
 void graph_from_file_imp(struct Floor *floor, char *filename){
     //find the height of the height of the floor for dynamic memory allocation
     floor->height = floor->get_floor_height(filename);
@@ -247,6 +248,7 @@ int get_exit_index_imp(const struct Floor *floor, int y, int x){
 //set tile->lit=true around character with position char_y, char_x
 void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int light_radius){
     /*******set previous tile->lit = false, keep tile->revealed=true******/
+    struct Tile ***fGraph = floor->graph; 
 	int i,j;//iterators for for loops, i is for y-coordinate and j is for x-coordinate
 	int char_lit_radius = floor->max_visibility;//radius around character to set tile->lit=false
 	int clear_lit_start_x, clear_lit_stop_x, clear_lit_start_y, clear_lit_stop_y;
@@ -259,12 +261,12 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
 	clear_lit_stop_x = lit_stop_x + 1;
 	clear_lit_start_y = lit_start_y - 1;
 	clear_lit_stop_y = lit_stop_y + 1;
-    //check lit_start for graph out of bounds
+    //check lit_start for fGraph out of bounds
     if( lit_start_y < 0 ) lit_start_y = 0;
     if( lit_start_x < 0 ) lit_start_x = 0;
     if( lit_stop_y > floor->height ) lit_stop_y = floor->height;
     if( lit_stop_x > floor->width ) lit_stop_x = floor->width;
-    //check clear_lit_start for graph out of bounds
+    //check clear_lit_start for fGraph out of bounds
     if( clear_lit_start_y < 0 ) clear_lit_start_y = 0;
     if( clear_lit_start_x < 0 ) clear_lit_start_x = 0;
     if( clear_lit_stop_y > floor->height ) clear_lit_stop_y = floor->height;
@@ -272,7 +274,7 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
 	//set tile->lit = false
     for( i = clear_lit_start_y ; i < clear_lit_stop_y ; i++ )
         for( j = clear_lit_start_x ; j < clear_lit_stop_x ; j++ ){
-            floor->graph[i][j]->lit = false;
+            fGraph[i][j]->lit = false;
     }
     /*******always light radius around character*******/
     int start_y, start_x, max_y, max_x;
@@ -288,16 +290,16 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
     //set square around player 
     for( i = char_y-1 ; i < char_y+2 ; i++ )
         for( j = char_x-1 ; j < char_x+2 ; j++ ){
-            floor->graph[i][j]->lit = true;
-            floor->graph[i][j]->revealed = true;
+            fGraph[i][j]->lit = true;
+            fGraph[i][j]->revealed = true;
     }
 	/**********lit cross from player********/
 	//right
     j = 0;
     while( j < char_lit_radius){
-        floor->graph[char_y][char_x + j]->lit = true;
-        floor->graph[char_y][char_x + j]->revealed = true;
-        if(floor->graph[char_y][char_x + j]->symbol == '#'){//light tile until '#'
+        fGraph[char_y][char_x + j]->lit = true;
+        fGraph[char_y][char_x + j]->revealed = true;
+        if(fGraph[char_y][char_x + j]->symbol == '#'){//light tile until '#'
             break;
         } 
         j++;
@@ -305,9 +307,9 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
 	//down
     i = 0;
     while( i < char_lit_radius){
-        floor->graph[char_y + i][char_x]->lit = true;
-        floor->graph[char_y + i][char_x]->revealed = true;
-        if(floor->graph[char_y + i][char_x]->symbol == '#'){//light tile until '#'
+        fGraph[char_y + i][char_x]->lit = true;
+        fGraph[char_y + i][char_x]->revealed = true;
+        if(fGraph[char_y + i][char_x]->symbol == '#'){//light tile until '#'
             break;
         } 
         i++;
@@ -315,9 +317,9 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
 	//left
     j = 0;
     while( j < char_lit_radius){
-        floor->graph[char_y][char_x-j]->lit = true;
-        floor->graph[char_y][char_x-j]->revealed = true;
-        if(floor->graph[char_y][char_x-j]->symbol == '#'){//light tile until '#'
+        fGraph[char_y][char_x-j]->lit = true;
+        fGraph[char_y][char_x-j]->revealed = true;
+        if(fGraph[char_y][char_x-j]->symbol == '#'){//light tile until '#'
             break;
         } 
         j++;
@@ -325,9 +327,9 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
 	//up
     i = 0;
     while( i < char_lit_radius){
-        floor->graph[char_y - i][char_x]->lit = true;
-        floor->graph[char_y - i][char_x]->revealed = true;
-        if(floor->graph[char_y - i][char_x]->symbol == '#'){//light tile until '#'
+        fGraph[char_y - i][char_x]->lit = true;
+        fGraph[char_y - i][char_x]->revealed = true;
+        if(fGraph[char_y - i][char_x]->symbol == '#'){//light tile until '#'
             break;
         } 
         i++;
@@ -338,14 +340,49 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
         if( char_y - i < 0) break;//out of bounds
         for( j = 1; j < char_lit_radius; j++){
             if( char_x + j > floor->width ) break;//out of bounds
-            if(floor->graph[char_y - i+1][char_x + j-1]->lit == true
-            &&  floor->graph[char_y - i][char_x + j-1]->can_pass_light == true){
-                floor->graph[char_y - i][char_x + j]->lit = true;
-                floor->graph[char_y - i][char_x + j]->revealed = true;
+            if((fGraph[char_y - i+1][char_x + j-1]->lit == true)//check bottom left
+            && (fGraph[char_y - i+1][char_x + j-1]->can_pass_light == true)){
+                /*****/
+                fGraph[char_y - i][char_x + j]->lit = true;
+                fGraph[char_y - i][char_x + j]->revealed = true;
+            }
+            else if((i == 1)//only check row just above character
+                 && (fGraph[char_y - i+1][char_x + j-1]->lit == true)//check bottom left
+                 && (fGraph[char_y - i+1][char_x + j-1]->can_pass_light == false)
+                 && (fGraph[char_y - i+1][char_x + j-2]->lit == true)//check bottom 2xleft
+                 && (fGraph[char_y - i+1][char_x + j-2]->can_pass_light == true)
+                 && (fGraph[char_y - i][char_x + j-1]->lit == true)//check left
+                 && (fGraph[char_y - i][char_x + j-1]->can_pass_light == true)){
+                 /*****/
+                 fGraph[char_y - i][char_x + j]->lit = true;
+                 fGraph[char_y - i][char_x + j]->revealed = true;
             }
         }
     }
 	//light lower right
 	//light upper left
+    for( i = 1; i < char_lit_radius; i++){
+        if( char_y - i < 0) break;//out of bounds
+        for( j = 1; j < char_lit_radius; j++){
+            if( char_x - j < 0 ) break;//out of bounds
+            if((fGraph[char_y - i+1][char_x - j+1]->lit == true)//check bottom right 
+            && (fGraph[char_y - i+1][char_x - j+1]->can_pass_light == true)){
+                /*****/
+                fGraph[char_y - i][char_x - j]->lit = true;
+                fGraph[char_y - i][char_x - j]->revealed = true;
+            }
+            else if((i == 1)//only check row just above character
+                 && (fGraph[char_y - i+1][char_x - j+1]->lit == true)//check bottom right 
+                 && (fGraph[char_y - i+1][char_x - j+1]->can_pass_light == false)
+                 && (fGraph[char_y - i+1][char_x - j+2]->lit == true)//check bottom 2xright
+                 && (fGraph[char_y - i+1][char_x - j+2]->can_pass_light == true)
+                 && (fGraph[char_y - i][char_x - j+1]->lit == true)//check right 
+                 && (fGraph[char_y - i][char_x - j+1]->can_pass_light == true)){
+                 /*****/
+                 fGraph[char_y - i][char_x - j]->lit = true;
+                 fGraph[char_y - i][char_x - j]->revealed = true;
+            }
+        }
+    }
 	//light lower left
 }
