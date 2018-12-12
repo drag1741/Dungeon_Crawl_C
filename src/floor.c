@@ -203,22 +203,20 @@ void print_floor_imp(struct Floor *floor){
                     mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
                     wattroff(dungeon_win, COLOR_PAIR(1));
                 }
-                else if( floor->graph[i][j]->symbol == '~'){//water
+                else if( floor->graph[i][j]->symbol == '.'){//floor tile
                     wattron(dungeon_win, COLOR_PAIR(2));
                     mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
                     wattroff(dungeon_win, COLOR_PAIR(2));
-                }
-                else if( floor->graph[i][j]->symbol == '.'){//floor tile
-                    wattron(dungeon_win, COLOR_PAIR(3));
-                    mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
-                    wattroff(dungeon_win, COLOR_PAIR(3));
                 }
                 else{
                     mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
                 }
             }
             else if(floor->graph[i][j]->revealed == true){
-                //change color to slightly darker if revealed but not shown
+                //change color to grey if revealed but not shown
+				wattron(dungeon_win, COLOR_PAIR(3));//COLOR_DARK_GREY
+				mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
+				wattroff(dungeon_win, COLOR_PAIR(3));
             }
             j++;
         }
@@ -258,8 +256,26 @@ void set_tile_show_true_imp( struct Floor *floor, int tile_y, int tile_x, int ar
     if( start_x < 0 ) start_x =0;
     if( max_y > floor->height ) max_y = floor->height;
     if( max_x > floor->width ) max_x = floor->width;
+	//set previous tile->show = false, keep tile->revealed=true
+	int i,j;//iterators for for loops, i is for y-coordinate and j is for x-coordinate
+	int turn_off_show = floor->max_visibility + 1;//radius around character to set tile->show=false
+	int show_start_x, show_stop_x, show_start_y, show_stop_y;
+	show_start_x = tile_x - turn_off_show;
+	show_stop_x = tile_x + turn_off_show + 1;
+	show_start_y = tile_y - turn_off_show;
+	show_stop_y = tile_y + turn_off_show + 1;
+    //check for graph out of bounds
+    if( show_start_y < 0 ) show_start_y = 0;
+    if( show_start_x < 0 ) show_start_x = 0;
+    if( show_stop_y > floor->height ) show_stop_y = floor->height;
+    if( show_stop_x > floor->width ) show_stop_x = floor->width;
+	//set tile->show = false
+    for( i = show_start_y ; i < show_stop_y ; i++ )
+        for( j = show_start_x ; j < show_stop_x ; j++ ){
+            floor->graph[i][j]->show = false;
+    }
+	
     //set square around player 
-	int i,j;
     for( i = tile_y-1 ; i < tile_y+2 ; i++ )
         for( j = tile_x-1 ; j < tile_x+2 ; j++ ){
             floor->graph[i][j]->show = true;
@@ -301,6 +317,12 @@ void set_tile_show_true_imp( struct Floor *floor, int tile_y, int tile_x, int ar
 	floor->graph[i][tile_x]->revealed = true;
 	
 	//show upper right
+    for( i = tile_y - 1; i > show_start_y-1 ; i-- )
+        for( j = tile_x + 2; j < show_stop_x-1 ; j++ ){
+			if(floor->graph[i+1][j-1]->show == true){
+				floor->graph[i][j]->show = true;
+			}
+    }
 	//show lower right
 	//show upper left
 	//show lower left

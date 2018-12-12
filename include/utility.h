@@ -21,6 +21,8 @@ void init_stdscr();
 
 //set the color pairs
 void set_colors();
+//ncurses colors
+#define COLOR_DARK_GREY 8
 
 //keyboard input handler, returns input
 int input_handle(struct Dungeon *dungeon, struct Character *player, int input);

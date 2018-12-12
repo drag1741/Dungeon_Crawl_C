@@ -57,9 +57,13 @@ void set_colors(){
     if(has_colors()){
        start_color();
        use_default_colors();
+	   //init custom colors
+	   init_color(COLOR_DARK_GREY, 75, 75, 75);
+	   //init color pairs
        init_pair(1,COLOR_YELLOW, -1);//rock
-       init_pair(2,COLOR_BLUE, -1);//water
-       init_pair(3,COLOR_WHITE, -1);//floor tile
+       init_pair(2,COLOR_BLUE, -1);//water,floor tile
+       init_pair(3,COLOR_WHITE, -1);//revealed but not lit
+       init_pair(4,COLOR_DARK_GREY, -1);//revealed but not lit
     }
 }
 
