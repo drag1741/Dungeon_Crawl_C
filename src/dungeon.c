@@ -4,9 +4,10 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
-#include "dungeon.h"
-#include "floor.h"
-#include "utility.h"
+
+#include "../include/dungeon.h"
+#include "../include/floor.h"
+#include "../include/utility.h"
 
 //initialize the dungeon
 struct Dungeon* init_dungeon(const int depth){

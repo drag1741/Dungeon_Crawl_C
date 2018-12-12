@@ -8,7 +8,6 @@
 #include "floor.h"
 
 #define CAN_MOVE_SIZE 30//size of can_move_onto array
-#define CHAR_ILLUMINATION 2//how many tiles around character to show
 
 struct Character{
     //members
@@ -16,12 +15,12 @@ struct Character{
     int can_move_onto[CAN_MOVE_SIZE];//chars that character can move onto
     int y_position;//current y position
     int x_position;//current x position
-    int illumination;//how many tiles around character to show
+    int light_radius;//how many tiles around character to lit always 
 
     //functions
-    void (*move_player)(struct Character *, const int, struct Floor *);
-    int (*allowed_to_move)(const struct Character *, int);
-    void (*print_character)(const struct Character *);
+    void (*move_player)(struct Character*, const int, struct Floor *);
+    int (*allowed_to_move)(const struct Character*, int);
+    void (*print_character)(const struct Character*);
 };
 
 //initialize character: set symbol and x and y positions

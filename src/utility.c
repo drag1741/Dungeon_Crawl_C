@@ -5,10 +5,11 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <time.h>
-#include "utility.h"
-#include "character.h"
-#include "dungeon.h"
-#include "floor.h"
+
+#include "../include/utility.h"
+#include "../include/character.h"
+#include "../include/dungeon.h"
+#include "../include/floor.h"
 
 //windows for ncurses
 WINDOW *dungeon_win;// dungeon window
@@ -100,4 +101,13 @@ int input_handle(struct Dungeon *dungeon, struct Character *player, int input){
         wclear(dungeon_win);
     }
     return input;
+}
+//update the screen state and refresh
+void update_screen(struct Dungeon *dungeon, struct Character *player){
+       struct Floor *current_floor = dungeon->floors[dungeon->current_floor];//for readability
+       current_floor->set_tile_lit_true(current_floor, player->y_position, player->x_position, player->light_radius);
+       dungeon->print_current_floor(dungeon);
+       player->print_character(player);
+       wrefresh(dungeon_win);
+       wrefresh(info_win);
 }

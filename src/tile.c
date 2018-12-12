@@ -14,9 +14,9 @@ struct Tile * init_tile(const int symbol){
         return NULL;
     //set members
     ret_value->symbol = symbol;
-    ret_value->show = false;
+    ret_value->lit = false;
     ret_value->revealed = false;
-    if(symbol == '#'){//set tile to block light passing through
+    if(ret_value->symbol == '#'){//set tile to block light passing through
         ret_value->can_pass_light = false;
     }
     else{

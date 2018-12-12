@@ -6,15 +6,15 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#include "dungeon.h"
-#include "character.h"
-#include "utility.h"
+#include "../include/dungeon.h"
+#include "../include/character.h"
+#include "../include/utility.h"
 
 int main(int argc, char *argv[]){
     /*********initialize game struct*********/
     init_game();
     /********initialize Dungeon struct**********/
-    struct Dungeon *dungeon = init_dungeon(10);
+    struct Dungeon *dungeon = init_dungeon(3);
     if(dungeon == NULL){//failed to initialize
        fprintf(stderr,"[main] dungeon failed to initialize.\n");
        exit(-1);
@@ -29,11 +29,7 @@ int main(int argc, char *argv[]){
     /********main game loop**********/
     int input = 0;
     while(input != 'q'){
-       //update screen
-       dungeon->print_current_floor(dungeon);
-       player->print_character(player);
-       wrefresh(dungeon_win);
-       wrefresh(info_win);
+       update_screen(dungeon,player);
        //input handling
        input = wgetch(dungeon_win);
        input_handle(dungeon, player, input);

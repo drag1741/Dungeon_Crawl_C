@@ -4,10 +4,11 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "character.h"
-#include "floor.h"
-#include "tile.h"
-#include "utility.h"
+
+#include "../include/character.h"
+#include "../include/floor.h"
+#include "../include/tile.h"
+#include "../include/utility.h"
 
 //initialize character: set symbol and x and y positions
 struct Character* init_character(const char symbol, const int y, const int x){
@@ -21,7 +22,7 @@ struct Character* init_character(const char symbol, const int y, const int x){
     ret_value->symbol = symbol;
     ret_value->y_position = y;
     ret_value->x_position = x; 
-    ret_value->illumination = CHAR_ILLUMINATION; 
+    ret_value->light_radius = 1; 
     //set the char that the character can move onto
     ret_value->can_move_onto[0] = '.';
     ret_value->can_move_onto[1] = '<';
@@ -42,25 +43,25 @@ void move_player_imp(struct Character *player, const int input, struct Floor *fl
     int *x = &(player->x_position);
     if(input == KEY_LEFT || input == 'h'){//move left
         if(player->allowed_to_move(player,floor->graph[*y][*x-1]->symbol)){
-            floor->set_tile_show_true(floor, *y, *x-1, player->illumination);
+            //floor->set_tile_lit_true(floor, *y, *x-1, player->light_radius);
             *x -= 1;
         }
     }
     else if(input == KEY_UP || input == 'k'){//move up 
         if(player->allowed_to_move(player,floor->graph[*y-1][*x]->symbol)){
-            floor->set_tile_show_true(floor, *y-1, *x, player->illumination);
+            //floor->set_tile_lit_true(floor, *y-1, *x, player->light_radius);
             *y -= 1;
         }
     }
     else if(input == KEY_RIGHT || input == 'l'){//move right
         if(player->allowed_to_move(player,floor->graph[*y][*x+1]->symbol)){
-            floor->set_tile_show_true(floor, *y, *x+1, player->illumination);
+            //floor->set_tile_lit_true(floor, *y, *x+1, player->light_radius);
             *x += 1;
         }
     }
     else if(input == KEY_DOWN || input == 'j'){//move down 
         if(player->allowed_to_move(player,floor->graph[*y+1][*x]->symbol)){
-            floor->set_tile_show_true(floor, *y+1, *x, player->illumination);
+           // floor->set_tile_lit_true(floor, *y+1, *x, player->light_radius);
             *y += 1;
         }
     }

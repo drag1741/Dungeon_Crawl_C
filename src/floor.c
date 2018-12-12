@@ -3,9 +3,12 @@
 #include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "floor.h"
-#include "tile.h"
-#include "utility.h"
+#include <stdbool.h>
+
+#include "../include/floor.h"
+#include "../include/character.h"
+#include "../include/tile.h"
+#include "../include/utility.h"
 
 //initialize the floor
 struct Floor* init_floor(const int height, const int width, const float density_percent){
@@ -19,7 +22,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->height = height;
     ret_value->width = width;
     ret_value->density_percent = density_percent;
-    ret_value->max_visibility = 10;//the maximum show range for characters
+    ret_value->max_visibility = 5;//the maximum lit range for characters
     //set function pointers
     ret_value->generate_random_floor = &generate_random_floor_imp;
     ret_value->graph_from_file = &graph_from_file_imp;
@@ -30,7 +33,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->get_floor_height = &get_floor_height_imp;
     ret_value->get_entrance_index = &get_entrance_index_imp;
     ret_value->get_exit_index = &get_exit_index_imp;
-    ret_value->set_tile_show_true = &set_tile_show_true_imp;
+    ret_value->set_tile_lit_true = &set_tile_lit_true_imp;
     //function calls
     ret_value->generate_random_floor(ret_value);
     ret_value->set_floor_entrances(ret_value);
@@ -197,7 +200,7 @@ void print_floor_imp(struct Floor *floor){
     for( i = 0 ; i < floor->height; i++){
         j = 0 ;
         while(floor->graph[i][j]->symbol != 0){
-            if(floor->graph[i][j]->show == true){//only print if show is set true
+            if(floor->graph[i][j]->lit == true){//only print if lit is set true
                 if( floor->graph[i][j]->symbol == '#'){//rock
                     wattron(dungeon_win, COLOR_PAIR(1));
                     mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
@@ -213,7 +216,7 @@ void print_floor_imp(struct Floor *floor){
                 }
             }
             else if(floor->graph[i][j]->revealed == true){
-                //change color to grey if revealed but not shown
+                //change color to grey if revealed but not lit
 				wattron(dungeon_win, COLOR_PAIR(3));//COLOR_DARK_GREY
 				mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
 				wattroff(dungeon_win, COLOR_PAIR(3));
@@ -241,91 +244,108 @@ int get_exit_index_imp(const struct Floor *floor, int y, int x){
     return -1;//not found
 }
 
-//set Tile given by graph[tile_y][tile_x]->show to true, if true the tile will be shown 
-//during print_floor, int area is the area around the given tile to also set true
-//area = 0 means only the tile at graph[tile_y][tile_x] is set true
-void set_tile_show_true_imp( struct Floor *floor, int tile_y, int tile_x, int area){
-    //initialize variables for graph for loops
+//set tile->lit=true around character with position char_y, char_x
+void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int light_radius){
+    /*******set previous tile->lit = false, keep tile->revealed=true******/
+	int i,j;//iterators for for loops, i is for y-coordinate and j is for x-coordinate
+	int char_lit_radius = floor->max_visibility;//radius around character to set tile->lit=false
+	int clear_lit_start_x, clear_lit_stop_x, clear_lit_start_y, clear_lit_stop_y;
+	int lit_start_x, lit_stop_x, lit_start_y, lit_stop_y;
+	lit_start_x = char_x - char_lit_radius;
+	lit_stop_x = char_x + char_lit_radius;
+	lit_start_y = char_y - char_lit_radius;
+	lit_stop_y = char_y + char_lit_radius;
+	clear_lit_start_x = lit_start_x - 1;
+	clear_lit_stop_x = lit_stop_x + 1;
+	clear_lit_start_y = lit_start_y - 1;
+	clear_lit_stop_y = lit_stop_y + 1;
+    //check lit_start for graph out of bounds
+    if( lit_start_y < 0 ) lit_start_y = 0;
+    if( lit_start_x < 0 ) lit_start_x = 0;
+    if( lit_stop_y > floor->height ) lit_stop_y = floor->height;
+    if( lit_stop_x > floor->width ) lit_stop_x = floor->width;
+    //check clear_lit_start for graph out of bounds
+    if( clear_lit_start_y < 0 ) clear_lit_start_y = 0;
+    if( clear_lit_start_x < 0 ) clear_lit_start_x = 0;
+    if( clear_lit_stop_y > floor->height ) clear_lit_stop_y = floor->height;
+    if( clear_lit_stop_x > floor->width ) clear_lit_stop_x = floor->width;
+	//set tile->lit = false
+    for( i = clear_lit_start_y ; i < clear_lit_stop_y ; i++ )
+        for( j = clear_lit_start_x ; j < clear_lit_stop_x ; j++ ){
+            floor->graph[i][j]->lit = false;
+    }
+    /*******always light radius around character*******/
     int start_y, start_x, max_y, max_x;
-    start_y = tile_y - area; 
-    start_x = tile_x - area; 
-    max_y = tile_y + area + 1;
-    max_x = tile_x + area + 1;
+    start_y = char_y - light_radius; 
+    start_x = char_x - light_radius; 
+    max_y = char_y + light_radius + 1;
+    max_x = char_x + light_radius + 1;
     //check for graph out of bounds
     if( start_y < 0 ) start_y =0;
     if( start_x < 0 ) start_x =0;
     if( max_y > floor->height ) max_y = floor->height;
     if( max_x > floor->width ) max_x = floor->width;
-	//set previous tile->show = false, keep tile->revealed=true
-	int i,j;//iterators for for loops, i is for y-coordinate and j is for x-coordinate
-	int turn_off_show = floor->max_visibility + 1;//radius around character to set tile->show=false
-	int show_start_x, show_stop_x, show_start_y, show_stop_y;
-	show_start_x = tile_x - turn_off_show;
-	show_stop_x = tile_x + turn_off_show + 1;
-	show_start_y = tile_y - turn_off_show;
-	show_stop_y = tile_y + turn_off_show + 1;
-    //check for graph out of bounds
-    if( show_start_y < 0 ) show_start_y = 0;
-    if( show_start_x < 0 ) show_start_x = 0;
-    if( show_stop_y > floor->height ) show_stop_y = floor->height;
-    if( show_stop_x > floor->width ) show_stop_x = floor->width;
-	//set tile->show = false
-    for( i = show_start_y ; i < show_stop_y ; i++ )
-        for( j = show_start_x ; j < show_stop_x ; j++ ){
-            floor->graph[i][j]->show = false;
-    }
-	
     //set square around player 
-    for( i = tile_y-1 ; i < tile_y+2 ; i++ )
-        for( j = tile_x-1 ; j < tile_x+2 ; j++ ){
-            floor->graph[i][j]->show = true;
+    for( i = char_y-1 ; i < char_y+2 ; i++ )
+        for( j = char_x-1 ; j < char_x+2 ; j++ ){
+            floor->graph[i][j]->lit = true;
             floor->graph[i][j]->revealed = true;
     }
-	//show cross from player
+	/**********lit cross from player********/
 	//right
-	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#' && 
-                            (j-tile_x) < floor->max_visibility; j++){
-
-            floor->graph[tile_y][j]->show = true;
-            floor->graph[tile_y][j]->revealed = true;
-	}
-	floor->graph[tile_y][j]->show = true;//show wall section
-	floor->graph[tile_y][j]->revealed = true;
-	//down
-	for( i = tile_y; floor->graph[i][tile_x]->symbol != '#' &&
-                            (i-tile_y) < floor->max_visibility; i++){
-            floor->graph[i][tile_x]->show = true;
-            floor->graph[i][tile_x]->revealed = true;
-	}
-	floor->graph[i][tile_x]->show = true;//show wall section
-	floor->graph[i][tile_x]->revealed = true;
-	//left
-	for( j = tile_x; floor->graph[tile_y][j]->symbol != '#' &&
-                       (-1*(j-tile_x)) < floor->max_visibility; j--){
-            floor->graph[tile_y][j]->show = true;
-            floor->graph[tile_y][j]->revealed = true;
-	}
-	floor->graph[tile_y][j]->show = true;//show wall section
-	floor->graph[tile_y][j]->revealed = true;
-	//up
-	for( i = tile_y; floor->graph[i][tile_x]->symbol != '#' &&
-                       (-1*(i-tile_y)) < floor->max_visibility; i--){
-            floor->graph[i][tile_x]->show = true;
-            floor->graph[i][tile_x]->revealed = true;
-	}
-	floor->graph[i][tile_x]->show = true;//show wall section
-	floor->graph[i][tile_x]->revealed = true;
-	
-	//show upper right
-    for( i = tile_y - 1; i > show_start_y-1 ; i-- )
-        for( j = tile_x + 2; j < show_stop_x-1 ; j++ ){
-			if(floor->graph[i+1][j-1]->show == true){
-				floor->graph[i][j]->show = true;
-			}
+    j = 0;
+    while( j < char_lit_radius){
+        floor->graph[char_y][char_x + j]->lit = true;
+        floor->graph[char_y][char_x + j]->revealed = true;
+        if(floor->graph[char_y][char_x + j]->symbol == '#'){//light tile until '#'
+            break;
+        } 
+        j++;
     }
-	//show lower right
-	//show upper left
-	//show lower left
-
+	//down
+    i = 0;
+    while( i < char_lit_radius){
+        floor->graph[char_y + i][char_x]->lit = true;
+        floor->graph[char_y + i][char_x]->revealed = true;
+        if(floor->graph[char_y + i][char_x]->symbol == '#'){//light tile until '#'
+            break;
+        } 
+        i++;
+    }
+	//left
+    j = 0;
+    while( j < char_lit_radius){
+        floor->graph[char_y][char_x-j]->lit = true;
+        floor->graph[char_y][char_x-j]->revealed = true;
+        if(floor->graph[char_y][char_x-j]->symbol == '#'){//light tile until '#'
+            break;
+        } 
+        j++;
+    }
+	//up
+    i = 0;
+    while( i < char_lit_radius){
+        floor->graph[char_y - i][char_x]->lit = true;
+        floor->graph[char_y - i][char_x]->revealed = true;
+        if(floor->graph[char_y - i][char_x]->symbol == '#'){//light tile until '#'
+            break;
+        } 
+        i++;
+    }
+    /*******cast light clockwise starting in upper right******/	
+	//light upper right
+    for( i = 1; i < char_lit_radius; i++){
+        if( char_y - i < 0) break;//out of bounds
+        for( j = 1; j < char_lit_radius; j++){
+            if( char_x + j > floor->width ) break;//out of bounds
+            if(floor->graph[char_y - i+1][char_x + j-1]->lit == true
+            &&  floor->graph[char_y - i][char_x + j-1]->can_pass_light == true){
+                floor->graph[char_y - i][char_x + j]->lit = true;
+                floor->graph[char_y - i][char_x + j]->revealed = true;
+            }
+        }
+    }
+	//light lower right
+	//light upper left
+	//light lower left
 }
-	

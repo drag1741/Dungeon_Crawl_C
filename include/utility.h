@@ -6,6 +6,7 @@
 #define UTILITY_H
 
 #include <ncurses.h>
+
 #include "dungeon.h"
 #include "character.h"
 
@@ -26,5 +27,8 @@ void set_colors();
 
 //keyboard input handler, returns input
 int input_handle(struct Dungeon *dungeon, struct Character *player, int input);
+
+//update the screen state and refresh
+void update_screen(struct Dungeon *dungeon, struct Character *player);
 
 #endif
