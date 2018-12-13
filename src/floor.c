@@ -22,7 +22,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->height = height;
     ret_value->width = width;
     ret_value->density_percent = density_percent;
-    ret_value->max_visibility = 5;//the maximum lit range for characters
+    ret_value->max_visibility = 7;//the maximum lit range for characters
     //set function pointers
     ret_value->generate_random_floor = &generate_random_floor_imp;
     ret_value->graph_from_file = &graph_from_file_imp;
@@ -293,7 +293,7 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
             fGraph[i][j]->lit = true;
             fGraph[i][j]->revealed = true;
     }
-	/**********lit cross from player********/
+	/**********light cross from player********/
 	//right
     j = 0;
     while( j < char_lit_radius){
@@ -360,6 +360,29 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
         }
     }
 	//light lower right
+    for( i = 1; i < char_lit_radius; i++){
+        if( char_y + i > floor->height) break;//out of bounds
+        for( j = 1; j < char_lit_radius; j++){
+            if( char_x + j > floor->width ) break;//out of bounds
+            if((fGraph[char_y + i-1][char_x + j-1]->lit == true)//check bottom left
+            && (fGraph[char_y + i-1][char_x + j-1]->can_pass_light == true)){
+                /*****/
+                fGraph[char_y + i][char_x + j]->lit = true;
+                fGraph[char_y + i][char_x + j]->revealed = true;
+            }
+            else if((i == 1)//only check row just above character
+                 && (fGraph[char_y + i-1][char_x + j-1]->lit == true)//check bottom left
+                 && (fGraph[char_y + i-1][char_x + j-1]->can_pass_light == false)
+                 && (fGraph[char_y + i-1][char_x + j-2]->lit == true)//check bottom 2xleft
+                 && (fGraph[char_y + i-1][char_x + j-2]->can_pass_light == true)
+                 && (fGraph[char_y + i][char_x + j-1]->lit == true)//check left
+                 && (fGraph[char_y + i][char_x + j-1]->can_pass_light == true)){
+                 /*****/
+                 fGraph[char_y + i][char_x + j]->lit = true;
+                 fGraph[char_y + i][char_x + j]->revealed = true;
+            }
+        }
+    }
 	//light upper left
     for( i = 1; i < char_lit_radius; i++){
         if( char_y - i < 0) break;//out of bounds
@@ -385,4 +408,27 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
         }
     }
 	//light lower left
+    for( i = 1; i < char_lit_radius; i++){
+        if( char_y + i > floor->height) break;//out of bounds
+        for( j = 1; j < char_lit_radius; j++){
+            if( char_x - j < 0 ) break;//out of bounds
+            if((fGraph[char_y + i-1][char_x - j+1]->lit == true)//check bottom right 
+            && (fGraph[char_y + i-1][char_x - j+1]->can_pass_light == true)){
+                /*****/
+                fGraph[char_y + i][char_x - j]->lit = true;
+                fGraph[char_y + i][char_x - j]->revealed = true;
+            }
+            else if((i == 1)//only check row just above character
+                 && (fGraph[char_y + i-1][char_x - j+1]->lit == true)//check bottom right 
+                 && (fGraph[char_y + i-1][char_x - j+1]->can_pass_light == false)
+                 && (fGraph[char_y + i-1][char_x - j+2]->lit == true)//check bottom 2xright
+                 && (fGraph[char_y + i-1][char_x - j+2]->can_pass_light == true)
+                 && (fGraph[char_y + i][char_x - j+1]->lit == true)//check right 
+                 && (fGraph[char_y + i][char_x - j+1]->can_pass_light == true)){
+                 /*****/
+                 fGraph[char_y + i][char_x - j]->lit = true;
+                 fGraph[char_y + i][char_x - j]->revealed = true;
+            }
+        }
+    }
 }
