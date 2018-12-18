@@ -236,9 +236,9 @@ void print_floor_imp(struct Floor *floor){
     struct Item *cur_item = NULL;
     while(cur_node != NULL){
         cur_item = (struct Item*)cur_node->data;
-        wattron(dungeon_win, COLOR_PAIR(2));
+        wattron(dungeon_win, COLOR_PAIR(4));//COLOR_BRIGHT_YELLOW
         mvwaddch(dungeon_win,cur_item->y_position,cur_item->x_position, cur_item->symbol);
-        wattroff(dungeon_win, COLOR_PAIR(2));
+        wattroff(dungeon_win, COLOR_PAIR(4));
         cur_node = cur_node->next;
     }
 }
@@ -461,8 +461,10 @@ void set_random_items_imp(struct Floor *floor){
             y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
             x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
         }
-        struct Item *item = init_Item('i',y,x);
+        struct Item *item = init_Item('$',y,x);
         struct Node *node = init_Node(item,type); 
         floor->items->add_node_end(floor->items,node);//add to floor->items
+        y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
+        x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
     }
 }
