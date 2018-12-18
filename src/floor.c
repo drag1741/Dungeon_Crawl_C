@@ -9,6 +9,7 @@
 #include "../include/character.h"
 #include "../include/tile.h"
 #include "../include/utility.h"
+#include "../include/list.h"
 
 //initialize the floor
 struct Floor* init_floor(const int height, const int width, const float density_percent){
@@ -23,6 +24,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->width = width;
     ret_value->density_percent = density_percent;
     ret_value->max_visibility = 7;//the maximum lit range for characters
+	ret_value->items = malloc(sizeof(struct List));
     //set function pointers
     ret_value->generate_random_floor = &generate_random_floor_imp;
     ret_value->graph_from_file = &graph_from_file_imp;
@@ -34,6 +36,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->get_entrance_index = &get_entrance_index_imp;
     ret_value->get_exit_index = &get_exit_index_imp;
     ret_value->set_tile_lit_true = &set_tile_lit_true_imp;
+	ret_value->set_random_items = &set_random_items_imp;
     //function calls
     ret_value->generate_random_floor(ret_value);
     ret_value->set_floor_entrances(ret_value);
@@ -431,4 +434,8 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
             }
         }
     }
+}
+//randomly generate items in struct List *items
+void set_random_items_imp(struct Floor *floor){
+
 }

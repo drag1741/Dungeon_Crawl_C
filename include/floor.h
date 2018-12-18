@@ -4,6 +4,7 @@
 #define FLOOR_H
 
 #include "tile.h"
+#include "list.h"
 
 #define NUM_OF_ENTRS 2 //the number each of entrances and exits to the floor
 
@@ -17,6 +18,7 @@ struct Floor{
     int entrances[NUM_OF_ENTRS][2];//y,x values for entry
     int exits[NUM_OF_ENTRS][2];//y,x values for exit
     int max_visibility;//the maximum lit range for characters
+	struct List *items;//linked list of items
 
     //functions
     void (*generate_random_floor)(struct Floor*);
@@ -28,7 +30,9 @@ struct Floor{
     int  (*get_floor_height)(char*);
     int  (*get_entrance_index)(const struct Floor*, int, int);
     int  (*get_exit_index)(const struct Floor*, int, int);
-    void  (*set_tile_lit_true)( struct Floor*, int, int, int);
+    void (*set_tile_lit_true)( struct Floor*, int, int, int);
+	void (*set_random_items)( struct Floor*);
+	
 };
 
 //initialize the struct Floor *floor, sets function pointers in struct
@@ -63,5 +67,8 @@ int get_exit_index_imp(const struct Floor* floor, int y, int x);
 
 //set tile->lit=true around character with position char_y, char_x
 void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int light_radius);
+
+//randomly generate items in struct List items
+void set_random_items_imp(struct Floor *floor);
 
 #endif
