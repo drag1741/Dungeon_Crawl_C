@@ -21,6 +21,8 @@ struct Node{
     void *data;
 	int index;
 	enum Type type;
+    int x_position;
+    int y_position; 
 	
 	//functions
     void (*print_node)(struct Node*);

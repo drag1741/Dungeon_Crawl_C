@@ -26,7 +26,7 @@ struct List{
 };
 
 //initialize list
-struct List* init_List(struct Node *node);
+struct List* init_List();
 
 //add node to the end of list
 void add_node_end_imp(struct List *list, struct Node *node);

@@ -4,12 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>//temporary to test set_random_items
 
 #include "../include/floor.h"
 #include "../include/character.h"
 #include "../include/tile.h"
 #include "../include/utility.h"
 #include "../include/list.h"
+#include "../include/node.h"
+#include "../include/item.h"
 
 //initialize the floor
 struct Floor* init_floor(const int height, const int width, const float density_percent){
@@ -24,7 +27,6 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->width = width;
     ret_value->density_percent = density_percent;
     ret_value->max_visibility = 7;//the maximum lit range for characters
-	ret_value->items = malloc(sizeof(struct List));
     //set function pointers
     ret_value->generate_random_floor = &generate_random_floor_imp;
     ret_value->graph_from_file = &graph_from_file_imp;
@@ -41,6 +43,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->generate_random_floor(ret_value);
     ret_value->set_floor_entrances(ret_value);
     ret_value->set_floor_exits(ret_value);
+    ret_value->set_random_items(ret_value);
 
     return ret_value;
 }
@@ -227,6 +230,16 @@ void print_floor_imp(struct Floor *floor){
             }
             j++;
         }
+    }
+    /*****print floor->items to dungeon_win*****/
+    struct Node *cur_node = floor->items->head;//current_node
+    struct Item *cur_item = NULL;
+    while(cur_node != NULL){
+        cur_item = (struct Item*)cur_node->data;
+        wattron(dungeon_win, COLOR_PAIR(2));
+        mvwaddch(dungeon_win,cur_item->y_position,cur_item->x_position, cur_item->symbol);
+        wattroff(dungeon_win, COLOR_PAIR(2));
+        cur_node = cur_node->next;
     }
 }
 
@@ -437,5 +450,19 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
 }
 //randomly generate items in struct List *items
 void set_random_items_imp(struct Floor *floor){
-
+    enum Type type = item;
+	floor->items = init_List();
+    //find random tile to position item
+    int y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
+    int x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
+    for(int i = 0; i < 5; i++){
+        /****find y and x positions for item****/
+        while(floor->graph[y][x]->symbol != '.'){
+            y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
+            x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
+        }
+        struct Item *item = init_Item('i',y,x);
+        struct Node *node = init_Node(item,type); 
+        floor->items->add_node_end(floor->items,node);//add to floor->items
+    }
 }

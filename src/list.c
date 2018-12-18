@@ -11,11 +11,11 @@
 #include "node.h"
 
 //initialize list
-struct List* init_List( struct Node *node){
+struct List* init_List(){
     struct List *ret_value;
     ret_value = malloc(sizeof(struct List));
     //set members
-    ret_value->head = node;
+    ret_value->head = NULL;
 	ret_value->tail = ret_value->head;
 	ret_value->size = 1;
     //Function pointers
@@ -28,10 +28,16 @@ struct List* init_List( struct Node *node){
 }
 //add node to the end of list
 void add_node_end_imp(struct List *list, struct Node *node){
-    node->prev = list->tail;
-    node->next = NULL;
-    list->tail->next = node;
-    list->tail = node;
+    if(list->head == NULL){//list is empty
+       list->head = node;
+       list->tail = node; 
+    }
+    else{//list not empty
+        node->prev = list->tail;
+        node->next = NULL;
+        list->tail->next = node;
+        list->tail = node;
+    }
     list->size++;
 }
 //remove node from middle of list
