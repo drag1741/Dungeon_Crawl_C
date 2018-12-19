@@ -236,10 +236,12 @@ void print_floor_imp(struct Floor *floor){
     struct Item *cur_item = NULL;
     while(cur_node != NULL){
         cur_item = (struct Item*)cur_node->data;
-        wattron(dungeon_win, COLOR_PAIR(4));//COLOR_BRIGHT_YELLOW
-        mvwaddch(dungeon_win,cur_item->y_position,cur_item->x_position, cur_item->symbol);
-        wattroff(dungeon_win, COLOR_PAIR(4));
-        cur_node = cur_node->next;
+		if(cur_item->revealed == true){
+			wattron(dungeon_win, COLOR_PAIR(4));//COLOR_BRIGHT_YELLOW
+			mvwaddch(dungeon_win,cur_item->y_position,cur_item->x_position, cur_item->symbol);
+			wattroff(dungeon_win, COLOR_PAIR(4));
+		}
+		cur_node = cur_node->next;
     }
 }
 

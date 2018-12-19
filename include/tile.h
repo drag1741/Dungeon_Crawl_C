@@ -1,6 +1,8 @@
-//tile.h
-//
-//basic tile struct for map
+/* File:tile.h
+
+   Author:Jay Drage
+   Synapse:basic tile struct for map
+*/
 
 #ifndef TILE_H
 #define TILE_H

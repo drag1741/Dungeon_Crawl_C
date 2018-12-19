@@ -17,6 +17,8 @@ struct Item* init_Item(const char symbol, const int y, const int x){
     ret_value->symbol = symbol;
     ret_value->y_position = y;
     ret_value->x_position = x;
+    ret_value->lit = false;
+    ret_value->revealed = false;
     //set function pointers
     //function calls
     
