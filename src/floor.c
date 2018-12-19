@@ -38,7 +38,10 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->get_entrance_index = &get_entrance_index_imp;
     ret_value->get_exit_index = &get_exit_index_imp;
     ret_value->set_tile_lit_true = &set_tile_lit_true_imp;
+    ret_value->set_tile_lit_false = &set_tile_lit_false_imp;
 	ret_value->set_random_items = &set_random_items_imp;
+	ret_value->set_item_lit_true = &set_item_lit_true_imp;
+
     //function calls
     ret_value->generate_random_floor(ret_value);
     ret_value->set_floor_entrances(ret_value);
@@ -178,7 +181,7 @@ void set_floor_exits_imp(struct Floor *floor){
     }
 }
 
-//get the floor height and set floor.height
+//get the floor height and set floor.height when floor is read in from file
 int get_floor_height_imp(char *filename){
     //open filename
     FILE *fd;
@@ -224,7 +227,7 @@ void print_floor_imp(struct Floor *floor){
             }
             else if(floor->graph[i][j]->revealed == true){
                 //change color to grey if revealed but not lit
-				wattron(dungeon_win, COLOR_PAIR(3));//COLOR_DARK_GREY
+				wattron(dungeon_win, COLOR_PAIR(3));//COLOR_WHITE
 				mvwaddch(dungeon_win,i,j,floor->graph[i][j]->symbol);
 				wattroff(dungeon_win, COLOR_PAIR(3));
             }
@@ -236,10 +239,15 @@ void print_floor_imp(struct Floor *floor){
     struct Item *cur_item = NULL;
     while(cur_node != NULL){
         cur_item = (struct Item*)cur_node->data;
-		if(cur_item->revealed == true){
+		if(cur_item->lit == true){
 			wattron(dungeon_win, COLOR_PAIR(4));//COLOR_BRIGHT_YELLOW
 			mvwaddch(dungeon_win,cur_item->y_position,cur_item->x_position, cur_item->symbol);
 			wattroff(dungeon_win, COLOR_PAIR(4));
+		}
+		else if(cur_item->revealed == true){
+			wattron(dungeon_win, COLOR_PAIR(3));//COLOR_WHITE
+			mvwaddch(dungeon_win,cur_item->y_position,cur_item->x_position, cur_item->symbol);
+			wattroff(dungeon_win, COLOR_PAIR(3));
 		}
 		cur_node = cur_node->next;
     }
@@ -265,7 +273,6 @@ int get_exit_index_imp(const struct Floor *floor, int y, int x){
 
 //set tile->lit=true around character with position char_y, char_x
 void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int light_radius){
-    /*******set previous tile->lit = false, keep tile->revealed=true******/
     struct Tile ***fGraph = floor->graph; 
 	int i,j;//iterators for for loops, i is for y-coordinate and j is for x-coordinate
 	int char_lit_radius = floor->max_visibility;//radius around character to set tile->lit=false
@@ -289,11 +296,6 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
     if( clear_lit_start_x < 0 ) clear_lit_start_x = 0;
     if( clear_lit_stop_y > floor->height ) clear_lit_stop_y = floor->height;
     if( clear_lit_stop_x > floor->width ) clear_lit_stop_x = floor->width;
-	//set tile->lit = false
-    for( i = clear_lit_start_y ; i < clear_lit_stop_y ; i++ )
-        for( j = clear_lit_start_x ; j < clear_lit_stop_x ; j++ ){
-            fGraph[i][j]->lit = false;
-    }
     /*******always light radius around character*******/
     int start_y, start_x, max_y, max_x;
     start_y = char_y - light_radius; 
@@ -450,6 +452,40 @@ void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int lig
         }
     }
 }
+
+//set tile->lit=false around character with position char_y, char_x
+void set_tile_lit_false_imp( struct Floor *floor, int char_y, int char_x, int light_radius){
+    /*******set previous tile->lit = false, keep tile->revealed=true******/
+    struct Tile ***fGraph = floor->graph; 
+	int i,j;//iterators for for loops, i is for y-coordinate and j is for x-coordinate
+	int char_lit_radius = floor->max_visibility;//radius around character to set tile->lit=false
+	int clear_lit_start_x, clear_lit_stop_x, clear_lit_start_y, clear_lit_stop_y;
+	int lit_start_x, lit_stop_x, lit_start_y, lit_stop_y;
+	lit_start_x = char_x - char_lit_radius;
+	lit_stop_x = char_x + char_lit_radius;
+	lit_start_y = char_y - char_lit_radius;
+	lit_stop_y = char_y + char_lit_radius;
+	clear_lit_start_x = lit_start_x - 1;
+	clear_lit_stop_x = lit_stop_x + 1;
+	clear_lit_start_y = lit_start_y - 1;
+	clear_lit_stop_y = lit_stop_y + 1;
+    //check lit_start for fGraph out of bounds
+    if( lit_start_y < 0 ) lit_start_y = 0;
+    if( lit_start_x < 0 ) lit_start_x = 0;
+    if( lit_stop_y > floor->height ) lit_stop_y = floor->height;
+    if( lit_stop_x > floor->width ) lit_stop_x = floor->width;
+    //check clear_lit_start for fGraph out of bounds
+    if( clear_lit_start_y < 0 ) clear_lit_start_y = 0;
+    if( clear_lit_start_x < 0 ) clear_lit_start_x = 0;
+    if( clear_lit_stop_y > floor->height ) clear_lit_stop_y = floor->height;
+    if( clear_lit_stop_x > floor->width ) clear_lit_stop_x = floor->width;
+	//set tile->lit = false
+    for( i = clear_lit_start_y ; i < clear_lit_stop_y ; i++ )
+        for( j = clear_lit_start_x ; j < clear_lit_stop_x ; j++ ){
+            fGraph[i][j]->lit = false;
+    }
+}
+
 //randomly generate items in struct List *items
 void set_random_items_imp(struct Floor *floor){
     enum Type type = item;
@@ -468,5 +504,21 @@ void set_random_items_imp(struct Floor *floor){
         floor->items->add_node_end(floor->items,node);//add to floor->items
         y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
         x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
+    }
+}
+//set item->lit to true
+void set_item_lit_true_imp(struct Floor *floor){
+    struct Node *cur_node = floor->items->head;//current_node
+    struct Item *cur_item = NULL;
+    while(cur_node != NULL){
+        cur_item = (struct Item*)cur_node->data;
+		if(floor->graph[cur_item->y_position][cur_item->x_position]->lit == true){
+            cur_item->lit = true;
+            cur_item->revealed = true;
+		}
+        else{
+            cur_item->lit = false;
+        }
+		cur_node = cur_node->next;
     }
 }

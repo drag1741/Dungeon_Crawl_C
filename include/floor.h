@@ -31,7 +31,9 @@ struct Floor{
     int  (*get_entrance_index)(const struct Floor*, int, int);
     int  (*get_exit_index)(const struct Floor*, int, int);
     void (*set_tile_lit_true)( struct Floor*, int, int, int);
-	void (*set_random_items)( struct Floor*);
+    void (*set_tile_lit_false)( struct Floor*, int, int, int);
+	void (*set_random_items)(struct Floor*);
+    void (*set_item_lit_true)(struct Floor*);
 	
 };
 
@@ -56,7 +58,7 @@ void delete_floor_imp(struct Floor *floor);
 //print graph to stdscr
 void print_floor_imp(struct Floor *floor);
 
-//get the floor height and set floor.height
+//get the floor height and set floor.height when floor is read in from file
 int get_floor_height_imp(char *filename);
 
 //returns the index for entrances position of y,x
@@ -68,7 +70,12 @@ int get_exit_index_imp(const struct Floor* floor, int y, int x);
 //set tile->lit=true around character with position char_y, char_x
 void set_tile_lit_true_imp( struct Floor *floor, int char_y, int char_x, int light_radius);
 
+//set tile->lit=false around character with position char_y, char_x
+void set_tile_lit_false_imp( struct Floor *floor, int char_y, int char_x, int light_radius);
+
 //randomly generate items in struct List items
 void set_random_items_imp(struct Floor *floor);
 
+//set item->lit to true
+void set_item_lit_true_imp(struct Floor *floor);
 #endif

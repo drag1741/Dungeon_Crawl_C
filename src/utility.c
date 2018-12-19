@@ -74,14 +74,16 @@ int input_handle(struct Dungeon *dungeon, struct Character *player, int input){
     int dungeon_char = dungeon->floors[dungeon->current_floor]->graph[player->y_position][player->x_position]->symbol;
     int index = 0;//will hold index from floor->get_entrance_index()
     struct Floor *floor = dungeon->floors[dungeon->current_floor];
-    //move player
+    /*******player movement*********/
     if(input == KEY_LEFT || input == KEY_RIGHT || input == KEY_UP || input == KEY_DOWN ||
        input == 'h'      || input == 'l'       || input == 'k'    || input =='j'){
        //start if body
+       floor->set_tile_lit_false(floor, player->y_position, player->x_position, player->light_radius);//update tile lit and revealed flags to false
        player->move_player(player, input, floor);
     }
     else if(input == '>' && dungeon_char  == '>' && dungeon->current_floor != dungeon->depth-1){
         //start else if body
+        floor->set_tile_lit_false(floor, player->y_position, player->x_position, player->light_radius);//update tile lit and revealed flags to false
         dungeon->current_floor++;
         //move player to start of next dungeon floor
         index = floor->get_exit_index(floor, player->y_position, player->x_position);
@@ -92,6 +94,7 @@ int input_handle(struct Dungeon *dungeon, struct Character *player, int input){
     }
     else if(input == '<' && dungeon_char  == '<' && dungeon->current_floor != 0){
         //start else if body
+        floor->set_tile_lit_false(floor, player->y_position, player->x_position, player->light_radius);//update tile lit and revealed flags to false
         dungeon->current_floor--;
         //move player to exit of next dungeon floor
         index = floor->get_entrance_index(floor, player->y_position, player->x_position);
@@ -104,8 +107,11 @@ int input_handle(struct Dungeon *dungeon, struct Character *player, int input){
 }
 //update the screen state and refresh
 void update_screen(struct Dungeon *dungeon, struct Character *player){
+       /******update the game state******/
        struct Floor *current_floor = dungeon->floors[dungeon->current_floor];//for readability
-       current_floor->set_tile_lit_true(current_floor, player->y_position, player->x_position, player->light_radius);
+       current_floor->set_tile_lit_true(current_floor, player->y_position, player->x_position, player->light_radius);//update tile lit and revealed flags
+       current_floor->set_item_lit_true(current_floor);//update item lit and revealed flags
+       /******print to windows******/
        dungeon->print_current_floor(dungeon);
        player->print_character(player);
        wrefresh(dungeon_win);
