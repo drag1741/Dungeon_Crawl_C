@@ -9,6 +9,7 @@
 #include "../include/floor.h"
 #include "../include/tile.h"
 #include "../include/utility.h"
+#include "../include/list.h"
 
 //initialize character: set symbol and x and y positions
 struct Character* init_character(const char symbol, const int y, const int x){
@@ -23,6 +24,8 @@ struct Character* init_character(const char symbol, const int y, const int x){
     ret_value->y_position = y;
     ret_value->x_position = x; 
     ret_value->light_radius = 1; 
+    ret_value->inventory = init_List(); 
+    ret_value->gold = 0; 
     //set the char that the character can move onto
     ret_value->can_move_onto[0] = '.';
     ret_value->can_move_onto[1] = '<';
@@ -79,7 +82,6 @@ int allowed_to_move_imp(const struct Character *character, int symbol){
 //print character symbol
 void print_character_imp(const struct Character *character){
     //display character position on info_win
-    mvwprintw(info_win,3,1,"Player:(%d,%d) ",character->y_position,character->x_position);
     mvwaddch(dungeon_win,character->y_position,character->x_position,character->symbol);
     if(character->symbol == '@')//move cursor on top of player
         move(character->y_position,character->x_position);

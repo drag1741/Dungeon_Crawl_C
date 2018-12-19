@@ -44,8 +44,6 @@ void generate_random_dungeon_imp(struct Dungeon *dungeon){
 
 //print floor[current_floor]
 void print_current_floor_imp(const struct Dungeon *dungeon){
-    mvwprintw(info_win,2,1,"%s: level %d",dungeon->name,dungeon->current_floor);
-    wrefresh(info_win);
     //calls print_floor(const struct Floor*) from floor.h
     dungeon->floors[dungeon->current_floor]->print_floor(dungeon->floors[dungeon->current_floor]);
 }

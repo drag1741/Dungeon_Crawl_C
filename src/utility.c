@@ -10,6 +10,7 @@
 #include "../include/character.h"
 #include "../include/dungeon.h"
 #include "../include/floor.h"
+#include "../include/item.h"
 
 //windows for ncurses
 WINDOW *dungeon_win;// dungeon window
@@ -70,10 +71,11 @@ void set_colors(){
 
 //keyboard input handler, returns input
 int input_handle(struct Dungeon *dungeon, struct Character *player, int input){
+    input = wgetch(dungeon_win);//get input from player
     //dungeon_char and floor are for readability
     int dungeon_char = dungeon->floors[dungeon->current_floor]->graph[player->y_position][player->x_position]->symbol;
-    int index = 0;//will hold index from floor->get_entrance_index()
     struct Floor *floor = dungeon->floors[dungeon->current_floor];
+    int index = 0;//will hold index from floor->get_entrance_index()
     /*******player movement*********/
     if(input == KEY_LEFT || input == KEY_RIGHT || input == KEY_UP || input == KEY_DOWN ||
        input == 'h'      || input == 'l'       || input == 'k'    || input =='j'){
@@ -103,6 +105,23 @@ int input_handle(struct Dungeon *dungeon, struct Character *player, int input){
         player->x_position = floor->exits[index][1];
         wclear(dungeon_win);
     }
+    else if(input == 'p'){//pick up item
+        /*****print floor->items to dungeon_win*****/
+        struct Node *cur_node = floor->items->head;//current_node
+        struct Item *cur_item = NULL;
+        while(cur_node != NULL){
+            cur_item = (struct Item*)cur_node->data;
+            //move through floor->items and if an item position matches the player position
+            //remove from floor->items and add to player->inventory
+            if(  cur_item->y_position == player->y_position 
+              && cur_item->x_position == player->x_position){
+                floor->items->remove_node_mid(floor->items, cur_node);
+                player->inventory->add_node_end(player->inventory, cur_node);
+                if(cur_item->symbol == '$') player->gold += 50;
+            }
+            cur_node = cur_node->next;
+        }
+    }
     return input;
 }
 //update the screen state and refresh
@@ -112,6 +131,10 @@ void update_screen(struct Dungeon *dungeon, struct Character *player){
        current_floor->set_tile_lit_true(current_floor, player->y_position, player->x_position, player->light_radius);//update tile lit and revealed flags
        current_floor->set_item_lit_true(current_floor);//update item lit and revealed flags
        /******print to windows******/
+       mvwprintw(info_win,2,1,"%s: level %d",dungeon->name,dungeon->current_floor);
+       mvwprintw(info_win,3,1,"Player:(%3d,%3d) ",player->y_position,player->x_position);
+       wprintw(info_win,"Gold:%4d  ",player->gold);
+       wprintw(info_win,"Inventory size:%4d",player->inventory->size);
        dungeon->print_current_floor(dungeon);
        player->print_character(player);
        wrefresh(dungeon_win);

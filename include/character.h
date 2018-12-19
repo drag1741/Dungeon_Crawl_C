@@ -6,6 +6,7 @@
 
 
 #include "floor.h"
+#include "list.h"
 
 #define CAN_MOVE_SIZE 30//size of can_move_onto array
 
@@ -16,7 +17,9 @@ struct Character{
     int y_position;//current y position
     int x_position;//current x position
     int light_radius;//how many tiles around character to lit always 
-
+    struct List *inventory;//inventory of items, holds struct Node*
+    int gold;//amount of gold the player currently has
+    
     //functions
     void (*move_player)(struct Character*, const int, struct Floor *);
     int (*allowed_to_move)(const struct Character*, int);
@@ -26,8 +29,7 @@ struct Character{
 //initialize character: set symbol and x and y positions
 struct Character* init_character(const char symbol, const int y, const int x);
 
-//moves the player y_position and x_position
-//uses keyboard input
+//moves the player y_position and x_position, uses keyboard input
 void move_player_imp(struct Character *player, const int input, struct Floor *floor);
 
 //returns 1 if allowed to move, 0 if not
