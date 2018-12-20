@@ -31,4 +31,7 @@ int input_handle(struct Dungeon *dungeon, struct Character *player, int input);
 //update the screen state and refresh
 void update_screen(struct Dungeon *dungeon, struct Character *player);
 
+//updates the game state such as monster movement
+void update_game(struct Dungeon *dungeon);
+
 #endif

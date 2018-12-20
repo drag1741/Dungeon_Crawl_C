@@ -136,9 +136,38 @@ void update_screen(struct Dungeon *dungeon, struct Character *player){
        mvwprintw(info_win,2,1,"%s: level %d",dungeon->name,dungeon->current_floor);
        mvwprintw(info_win,3,1,"Player:(%3d,%3d) ",player->y_position,player->x_position);
        wprintw(info_win,"Gold:%4d  ",player->gold);
-       wprintw(info_win,"Inventory size:%4d",player->inventory->size);
+       wprintw(info_win,"Inventory size:%4d ",player->inventory->size);
+       wprintw(info_win,"HP:%3d",player->hp);
        dungeon->print_current_floor(dungeon);
        player->print_character(player);
        wrefresh(dungeon_win);
        wrefresh(info_win);
+}
+//updates the game state such as monster movement
+void update_game(struct Dungeon *dungeon){
+        struct Floor *floor = dungeon->floors[dungeon->current_floor];
+        /*****update monsters******/
+        struct Node *node = floor->monsters->head;//current_node
+        struct Character *monster = NULL;
+        int direction = 0;//randomly choose a direction to move
+        int input = direction;//change direction number to char for move_player()
+        while(node != NULL){
+            monster = (struct Character*)node->data;
+            direction = rand() % 4;//randomly choose a direction to move
+            //move through floor->monsters and move monster randomly 
+            if( direction == 0 ){
+                input = 'h';
+            }
+            else if( direction == 1 ){
+                input = 'j';
+            }
+            else if( direction == 2 ){
+                input = 'k';
+            }
+            else{
+                input = 'l';
+            }
+            monster->move_player(monster,input,floor);
+            node = node->next;
+        }
 }

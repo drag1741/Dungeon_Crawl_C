@@ -16,8 +16,8 @@ struct List* init_List(){
     ret_value = malloc(sizeof(struct List));
     //set members
     ret_value->head = NULL;
-	ret_value->tail = ret_value->head;
-	ret_value->size = 1;
+	ret_value->tail = NULL;
+	ret_value->size = 0;
     //Function pointers
 	ret_value->add_node_end = &add_node_end_imp;
 	ret_value->remove_node_mid = &remove_node_mid_imp;

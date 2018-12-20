@@ -75,9 +75,9 @@ void generate_random_floor_imp(struct Floor *floor){
     int i, j;
     for( i = 0 ; i < floor->height ; i++){
         for( j = 0 ; j < floor->width ; j++){
-            floor->graph[i][j] = init_tile('#');
+            floor->graph[i][j] = init_Tile('#');
         }
-        floor->graph[i][j] = init_tile(0);
+        floor->graph[i][j] = init_Tile(0);
     }
     /******create open spaces '.'******/
     int y, x, start_x, max_y = 0, max_x = 0;
@@ -108,6 +108,7 @@ void generate_random_floor_imp(struct Floor *floor){
                 if(floor->graph[y][x]->symbol != '.'){
                     floor->graph[y][x]->symbol = '.';//open space char
                     floor->graph[y][x]->can_pass_light = true;//allow light to pass through
+                    floor->graph[y][x]->walkable = true;//allow characters to walk onto 
                     number_open_spaces++;
                 }
             }
@@ -117,6 +118,7 @@ void generate_random_floor_imp(struct Floor *floor){
 }
 
 /******fills graph from file******/
+//does not use struct Tile*, old code
 void graph_from_file_imp(struct Floor *floor, char *filename){
     //find the height of the height of the floor for dynamic memory allocation
     floor->height = floor->get_floor_height(filename);
@@ -150,9 +152,9 @@ void graph_from_file_imp(struct Floor *floor, char *filename){
         }
         //load characters from file 
         for( j = 0 ; j < line_size-1; j++){
-            floor->graph[i][j] = init_tile(fgetc(fd));
+            floor->graph[i][j] = init_Tile(fgetc(fd));
         }
-        floor->graph[i][j] = init_tile(0);
+        floor->graph[i][j] = init_Tile(0);
         fgetc(fd);//throw away '\n'
     }
     fclose(fd);
@@ -169,6 +171,7 @@ void set_floor_entrances_imp(struct Floor *floor){
         floor->entrances[i][0] = y;
         floor->entrances[i][1] = x;
         floor->graph[y][x]->symbol = '<';
+        floor->graph[y][x]->walkable = true;
     }
 }
 
@@ -183,6 +186,7 @@ void set_floor_exits_imp(struct Floor *floor){
         floor->exits[i][0] = y;
         floor->exits[i][1] = x;
         floor->graph[y][x]->symbol = '>';
+        floor->graph[y][x]->walkable = true;
     }
 }
 
@@ -266,9 +270,10 @@ void print_floor_imp(struct Floor *floor){
 			mvwaddch(dungeon_win,monster->y_position,monster->x_position, monster->symbol);
 			wattroff(dungeon_win, COLOR_PAIR(5));
 		}
-		else if(monster->revealed == true){
+		else if(monster->revealed == true 
+             && floor->graph[monster->last_lit_y][monster->last_lit_x]->lit == false){
 			wattron(dungeon_win, COLOR_PAIR(3));//COLOR_WHITE
-			mvwaddch(dungeon_win,monster->y_position,monster->x_position, monster->symbol);
+			mvwaddch(dungeon_win,monster->last_lit_y,monster->last_lit_x, monster->symbol);
 			wattroff(dungeon_win, COLOR_PAIR(3));
 		}
 		cur_node = cur_node->next;
@@ -555,7 +560,7 @@ void set_random_monsters_imp(struct Floor *floor){
             y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
             x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
         }
-        struct Character *monster = init_character('M',y,x);
+        struct Character *monster = init_Character('M',y,x);
         struct Node *node = init_Node(monster,type); 
         floor->monsters->add_node_end(floor->monsters,node);//add to floor->items
         y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
@@ -571,6 +576,8 @@ void set_monster_lit_true_imp(struct Floor *floor){
 		if(floor->graph[monster->y_position][monster->x_position]->lit == true){
             monster->lit = true;
             monster->revealed = true;
+            monster->last_lit_y = monster->y_position;
+            monster->last_lit_x = monster->x_position;
 		}
         else{
             monster->lit = false;

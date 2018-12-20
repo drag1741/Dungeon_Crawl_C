@@ -1,6 +1,6 @@
 /*  File: main.c
-    Purpose: dungeon exploration game
     Author: Jay Drage
+    Synapse: dungeon exploration game
 */
 
 #include <ncurses.h>
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
        exit(-1);
     }
     /********initialize Player**********/
-    struct Character *player=init_character('@',dungeon->floors[0]->entrances[0][0],
+    struct Character *player=init_Character('@',dungeon->floors[0]->entrances[0][0],
                                                 dungeon->floors[0]->entrances[0][1]);
     if(player == NULL){//failed to initialize
        fprintf(stderr,"[main] player failed to initialize.\n");
@@ -32,9 +32,11 @@ int main(int argc, char *argv[]){
        update_screen(dungeon,player);
        //input handling
        input = input_handle(dungeon, player, input);
+       update_game(dungeon);
     }
     /**********close window and program************/
     dungeon->delete_dungeon(dungeon);
+    free(player);
     endwin();
     return(0);
 }
