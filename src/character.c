@@ -26,6 +26,8 @@ struct Character* init_character(const char symbol, const int y, const int x){
     ret_value->light_radius = 1; 
     ret_value->inventory = init_List(); 
     ret_value->gold = 0; 
+    ret_value->lit = false; 
+    ret_value->revealed = false; 
     //set the char that the character can move onto
     ret_value->can_move_onto[0] = '.';
     ret_value->can_move_onto[1] = '<';

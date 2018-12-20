@@ -19,6 +19,7 @@ struct Floor{
     int exits[NUM_OF_ENTRS][2];//y,x values for exit
     int max_visibility;//the maximum lit range for characters
 	struct List *items;//linked list of items
+	struct List *monsters;//linked list of monsters 
 
     //functions
     void (*generate_random_floor)(struct Floor*);
@@ -34,6 +35,8 @@ struct Floor{
     void (*set_tile_lit_false)( struct Floor*, int, int, int);
 	void (*set_random_items)(struct Floor*);
     void (*set_item_lit_true)(struct Floor*);
+    void (*set_random_monsters)(struct Floor *);
+    void (*set_monster_lit_true)(struct Floor*);
 	
 };
 
@@ -78,4 +81,11 @@ void set_random_items_imp(struct Floor *floor);
 
 //set item->lit to true
 void set_item_lit_true_imp(struct Floor *floor);
+
+//randomly generate monsterss in struct List *monsters
+void set_random_monsters_imp(struct Floor *floor);
+
+//set monster->lit to true
+void set_monster_lit_true_imp(struct Floor *floor);
+
 #endif

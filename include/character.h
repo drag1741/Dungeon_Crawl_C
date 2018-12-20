@@ -19,6 +19,8 @@ struct Character{
     int light_radius;//how many tiles around character to lit always 
     struct List *inventory;//inventory of items, holds struct Node*
     int gold;//amount of gold the player currently has
+    bool lit;//set to true to designate it as lit
+    bool revealed;//set to true to designate it has been lit
     
     //functions
     void (*move_player)(struct Character*, const int, struct Floor *);

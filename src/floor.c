@@ -27,6 +27,8 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->width = width;
     ret_value->density_percent = density_percent;
     ret_value->max_visibility = 7;//the maximum lit range for characters
+	ret_value->items = init_List();
+	ret_value->monsters = init_List();
     //set function pointers
     ret_value->generate_random_floor = &generate_random_floor_imp;
     ret_value->graph_from_file = &graph_from_file_imp;
@@ -41,12 +43,15 @@ struct Floor* init_floor(const int height, const int width, const float density_
     ret_value->set_tile_lit_false = &set_tile_lit_false_imp;
 	ret_value->set_random_items = &set_random_items_imp;
 	ret_value->set_item_lit_true = &set_item_lit_true_imp;
+	ret_value->set_random_monsters = &set_random_monsters_imp;
+	ret_value->set_monster_lit_true = &set_monster_lit_true_imp;
 
     //function calls
     ret_value->generate_random_floor(ret_value);
     ret_value->set_floor_entrances(ret_value);
     ret_value->set_floor_exits(ret_value);
     ret_value->set_random_items(ret_value);
+    ret_value->set_random_monsters(ret_value);
 
     return ret_value;
 }
@@ -247,6 +252,23 @@ void print_floor_imp(struct Floor *floor){
 		else if(cur_item->revealed == true){
 			wattron(dungeon_win, COLOR_PAIR(3));//COLOR_WHITE
 			mvwaddch(dungeon_win,cur_item->y_position,cur_item->x_position, cur_item->symbol);
+			wattroff(dungeon_win, COLOR_PAIR(3));
+		}
+		cur_node = cur_node->next;
+    }
+    /*****print floor->monsters to dungeon_win*****/
+    cur_node = floor->monsters->head;//current_node
+    struct Character *monster = NULL;
+    while(cur_node != NULL){
+        monster = (struct Character*)cur_node->data;
+		if(monster->lit == true){
+			wattron(dungeon_win, COLOR_PAIR(5));//COLOR_BRIGHT_YELLOW
+			mvwaddch(dungeon_win,monster->y_position,monster->x_position, monster->symbol);
+			wattroff(dungeon_win, COLOR_PAIR(5));
+		}
+		else if(monster->revealed == true){
+			wattron(dungeon_win, COLOR_PAIR(3));//COLOR_WHITE
+			mvwaddch(dungeon_win,monster->y_position,monster->x_position, monster->symbol);
 			wattroff(dungeon_win, COLOR_PAIR(3));
 		}
 		cur_node = cur_node->next;
@@ -489,7 +511,6 @@ void set_tile_lit_false_imp( struct Floor *floor, int char_y, int char_x, int li
 //randomly generate items in struct List *items
 void set_random_items_imp(struct Floor *floor){
     enum Type type = item;
-	floor->items = init_List();
     //find random tile to position item
     int y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
     int x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
@@ -518,6 +539,41 @@ void set_item_lit_true_imp(struct Floor *floor){
 		}
         else{
             cur_item->lit = false;
+        }
+		cur_node = cur_node->next;
+    }
+}
+//randomly generate monsterss in struct List *monsters
+void set_random_monsters_imp(struct Floor *floor){
+    enum Type type = monster;
+    //find random tile to position item
+    int y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
+    int x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
+    for(int i = 0; i < 10; i++){
+        /****find y and x positions for item****/
+        while(floor->graph[y][x]->symbol != '.'){
+            y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
+            x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
+        }
+        struct Character *monster = init_character('M',y,x);
+        struct Node *node = init_Node(monster,type); 
+        floor->monsters->add_node_end(floor->monsters,node);//add to floor->items
+        y = rand() % (floor->height-1) + 1;//values 1 to (height-1)
+        x = rand() % (floor->width-1) + 1;//values 1 to (width-1)
+    }
+}
+//set monster->lit to true
+void set_monster_lit_true_imp(struct Floor *floor){
+    struct Node *cur_node = floor->monsters->head;//current_node
+    struct Character *monster = NULL;
+    while(cur_node != NULL){
+        monster = (struct Character*)cur_node->data;
+		if(floor->graph[monster->y_position][monster->x_position]->lit == true){
+            monster->lit = true;
+            monster->revealed = true;
+		}
+        else{
+            monster->lit = false;
         }
 		cur_node = cur_node->next;
     }

@@ -65,7 +65,8 @@ void set_colors(){
        init_pair(1,COLOR_YELLOW, -1);//rock
        init_pair(2,COLOR_BLUE, -1);//water,floor tile
        init_pair(3,COLOR_WHITE, -1);//revealed but not lit
-       init_pair(4,COLOR_BRIGHT_YELLOW, -1);//revealed but not lit
+       init_pair(4,COLOR_BRIGHT_YELLOW, -1);
+       init_pair(5,COLOR_RED, -1);
     }
 }
 
@@ -130,6 +131,7 @@ void update_screen(struct Dungeon *dungeon, struct Character *player){
        struct Floor *current_floor = dungeon->floors[dungeon->current_floor];//for readability
        current_floor->set_tile_lit_true(current_floor, player->y_position, player->x_position, player->light_radius);//update tile lit and revealed flags
        current_floor->set_item_lit_true(current_floor);//update item lit and revealed flags
+       current_floor->set_monster_lit_true(current_floor);//update monster lit and revealed flags
        /******print to windows******/
        mvwprintw(info_win,2,1,"%s: level %d",dungeon->name,dungeon->current_floor);
        mvwprintw(info_win,3,1,"Player:(%3d,%3d) ",player->y_position,player->x_position);
