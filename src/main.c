@@ -31,8 +31,8 @@ int main(int argc, char *argv[]){
     while(input != 'q'){
        update_screen(dungeon,player);
        //input handling
-       input = input_handle(dungeon, player, input);
-       update_game(dungeon);
+       input = input_handle(dungeon, player);
+       update_game(dungeon,player);
     }
     /**********close window and program************/
     dungeon->delete_dungeon(dungeon);

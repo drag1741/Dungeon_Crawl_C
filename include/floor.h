@@ -36,7 +36,7 @@ struct Floor{
 	void (*set_random_items)(struct Floor*);
     void (*set_item_lit_true)(struct Floor*);
     void (*set_random_monsters)(struct Floor *);
-    void (*set_monster_lit_true)(struct Floor*);
+    void (*set_monster_last_lit)(struct Floor*);
 	
 };
 
@@ -86,6 +86,6 @@ void set_item_lit_true_imp(struct Floor *floor);
 void set_random_monsters_imp(struct Floor *floor);
 
 //set monster->lit to true
-void set_monster_lit_true_imp(struct Floor *floor);
+void set_monster_last_lit_imp(struct Floor *floor);
 
 #endif

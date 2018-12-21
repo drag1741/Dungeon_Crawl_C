@@ -44,7 +44,7 @@ struct Floor* init_floor(const int height, const int width, const float density_
 	ret_value->set_random_items = &set_random_items_imp;
 	ret_value->set_item_lit_true = &set_item_lit_true_imp;
 	ret_value->set_random_monsters = &set_random_monsters_imp;
-	ret_value->set_monster_lit_true = &set_monster_lit_true_imp;
+	ret_value->set_monster_last_lit = &set_monster_last_lit_imp;
 
     //function calls
     ret_value->generate_random_floor(ret_value);
@@ -265,13 +265,15 @@ void print_floor_imp(struct Floor *floor){
     struct Character *monster = NULL;
     while(cur_node != NULL){
         monster = (struct Character*)cur_node->data;
-		if(monster->lit == true){
+		if(floor->graph[monster->y_position][monster->x_position]->lit == true){
 			wattron(dungeon_win, COLOR_PAIR(5));//COLOR_BRIGHT_YELLOW
 			mvwaddch(dungeon_win,monster->y_position,monster->x_position, monster->symbol);
 			wattroff(dungeon_win, COLOR_PAIR(5));
 		}
-		else if(monster->revealed == true 
-             && floor->graph[monster->last_lit_y][monster->last_lit_x]->lit == false){
+		else if(floor->graph[monster->last_lit_y][monster->last_lit_x]->lit == true){
+            monster->show = false;
+		}
+		else if(monster->show == true){
 			wattron(dungeon_win, COLOR_PAIR(3));//COLOR_WHITE
 			mvwaddch(dungeon_win,monster->last_lit_y,monster->last_lit_x, monster->symbol);
 			wattroff(dungeon_win, COLOR_PAIR(3));
@@ -568,20 +570,16 @@ void set_random_monsters_imp(struct Floor *floor){
     }
 }
 //set monster->lit to true
-void set_monster_lit_true_imp(struct Floor *floor){
+void set_monster_last_lit_imp(struct Floor *floor){
     struct Node *cur_node = floor->monsters->head;//current_node
     struct Character *monster = NULL;
     while(cur_node != NULL){
         monster = (struct Character*)cur_node->data;
 		if(floor->graph[monster->y_position][monster->x_position]->lit == true){
-            monster->lit = true;
-            monster->revealed = true;
+            monster->show = true;
             monster->last_lit_y = monster->y_position;
             monster->last_lit_x = monster->x_position;
 		}
-        else{
-            monster->lit = false;
-        }
 		cur_node = cur_node->next;
     }
 }

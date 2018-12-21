@@ -41,7 +41,6 @@ void init_game(){
     if( !(info_win = newwin(info_win_y,info_win_x,dungeon_win_y,0)))//window failed
         addstr("Unable to create info_win");
     wborder(info_win,0,0,0,0,0,0,0,0);
-    mvwprintw(info_win,1,1,"Information Window");
     wrefresh(info_win);
 }
 
@@ -71,8 +70,8 @@ void set_colors(){
 }
 
 //keyboard input handler, returns input
-int input_handle(struct Dungeon *dungeon, struct Character *player, int input){
-    input = wgetch(dungeon_win);//get input from player
+int input_handle(struct Dungeon *dungeon, struct Character *player){
+    int input = wgetch(dungeon_win);//get input from player
     //dungeon_char and floor are for readability
     int dungeon_char = dungeon->floors[dungeon->current_floor]->graph[player->y_position][player->x_position]->symbol;
     struct Floor *floor = dungeon->floors[dungeon->current_floor];
@@ -131,20 +130,21 @@ void update_screen(struct Dungeon *dungeon, struct Character *player){
        struct Floor *current_floor = dungeon->floors[dungeon->current_floor];//for readability
        current_floor->set_tile_lit_true(current_floor, player->y_position, player->x_position, player->light_radius);//update tile lit and revealed flags
        current_floor->set_item_lit_true(current_floor);//update item lit and revealed flags
-       current_floor->set_monster_lit_true(current_floor);//update monster lit and revealed flags
+       current_floor->set_monster_last_lit(current_floor);//update monster lit and revealed flags
        /******print to windows******/
-       mvwprintw(info_win,2,1,"%s: level %d",dungeon->name,dungeon->current_floor);
-       mvwprintw(info_win,3,1,"Player:(%3d,%3d) ",player->y_position,player->x_position);
+       mvwprintw(info_win,1,1,"%s: level %d",dungeon->name,dungeon->current_floor);
+       mvwprintw(info_win,2,1,"Player:(%3d,%3d) ",player->y_position,player->x_position);
        wprintw(info_win,"Gold:%4d  ",player->gold);
        wprintw(info_win,"Inventory size:%4d ",player->inventory->size);
        wprintw(info_win,"HP:%3d",player->hp);
+       mvwprintw(info_win,3,1,"Monsters:%2d",current_floor->monsters->size);
        dungeon->print_current_floor(dungeon);
        player->print_character(player);
        wrefresh(dungeon_win);
        wrefresh(info_win);
 }
 //updates the game state such as monster movement
-void update_game(struct Dungeon *dungeon){
+void update_game(struct Dungeon *dungeon, struct Character *player){
         struct Floor *floor = dungeon->floors[dungeon->current_floor];
         /*****update monsters******/
         struct Node *node = floor->monsters->head;//current_node
@@ -153,6 +153,11 @@ void update_game(struct Dungeon *dungeon){
         int input = direction;//change direction number to char for move_player()
         while(node != NULL){
             monster = (struct Character*)node->data;
+            if(monster->hp <= 0){//monster is dead,remove from list
+                floor->monsters->remove_node_mid(floor->monsters,node);
+                node = node->next;
+                break;
+            }
             direction = rand() % 4;//randomly choose a direction to move
             //move through floor->monsters and move monster randomly 
             if( direction == 0 ){
@@ -167,7 +172,7 @@ void update_game(struct Dungeon *dungeon){
             else{
                 input = 'l';
             }
-            monster->move_player(monster,input,floor);
+            monster->move_monster(monster,player,input,floor);
             node = node->next;
         }
 }
